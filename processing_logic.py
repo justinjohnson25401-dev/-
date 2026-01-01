@@ -64,8 +64,15 @@ def process_raw_file(input_path, city):
     }
     df.rename(columns=column_mapping, inplace=True)
 
-    df['rating'] = pd.to_numeric(df.get('rating', 0), errors='coerce').fillna(0.0)
-    df['reviews_count'] = pd.to_numeric(df.get('reviews_count', 0), errors='coerce').fillna(0).astype(int)
+    if 'rating' in df.columns:
+        df['rating'] = pd.to_numeric(df['rating'], errors='coerce').fillna(0.0)
+    else:
+        df['rating'] = 0.0
+
+    if 'reviews_count' in df.columns:
+        df['reviews_count'] = pd.to_numeric(df['reviews_count'], errors='coerce').fillna(0).astype(int)
+    else:
+        df['reviews_count'] = 0
     
     for col in ['name', 'address', 'phones', 'site', 'socials', 'schedule', 'email']:
         if col not in df.columns:
