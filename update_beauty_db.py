@@ -1,4 +1,3 @@
-
 import argparse
 import pandas as pd
 from datetime import datetime
@@ -19,15 +18,17 @@ def main():
 
     new_data_df['company_key'] = new_data_df.apply(lambda row: f"{row['city']}||{row['address']}||{row['name']}".lower().strip(), axis=1)
     
+    output_columns = [
+        'name', 'city', 'address', 'phones', 'tg_link', 'site', 'socials', 
+        'schedule', 'email', 'rating', 'reviews_count', 'segment', 'lead_score', 
+        'has_phone', 'has_telegram', 'source', 'first_seen_at', 'company_key'
+    ]
+    
     try:
         db_df = pd.read_csv(args.db)
         initial_db_count = len(db_df)
     except FileNotFoundError:
-        db_df = pd.DataFrame(columns=[
-            'name', 'city', 'address', 'phones', 'site', 'socials', 'schedule', 
-            'email', 'rating', 'reviews_count', 'segment', 'lead_score', 'has_phone', 
-            'has_telegram', 'has_whatsapp', 'source', 'first_seen_at', 'company_key'
-        ])
+        db_df = pd.DataFrame(columns=output_columns)
         initial_db_count = 0
 
     new_records = new_data_df[~new_data_df['company_key'].isin(db_df['company_key'])]
@@ -39,17 +40,18 @@ def main():
     else:
         final_df = db_df
 
-    final_df = final_df[[
-        'name', 'city', 'address', 'phones', 'site', 'socials', 'schedule', 
-        'email', 'rating', 'reviews_count', 'segment', 'lead_score', 'has_phone',
-        'has_telegram', 'has_whatsapp', 'source', 'first_seen_at', 'company_key'
-    ]]
+    for col in output_columns:
+        if col not in final_df.columns:
+            final_df[col] = ''
+
+    final_df = final_df[output_columns]
 
     final_df.to_csv(args.db, index=False)
 
     print(f"Initial records in db: {initial_db_count}")
     print(f"New companies added: {len(new_records)}")
     print(f"Total companies in db: {len(final_df)}")
+    print(f"With Telegram: {final_df['has_telegram'].sum()}")
     print("\nSegment distribution in the updated database:")
     print(final_df['segment'].value_counts())
 

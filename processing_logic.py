@@ -1,21 +1,23 @@
 
 import pandas as pd
 import numpy as np
+import re
+
+def extract_tg_link(text: str) -> str:
+    # Ищем полную ссылку с протоколом
+    match = re.search(r'https?://t\.me/[^\s,"]+', str(text))
+    if match:
+        return match.group(0)
+    # Резервный вариант: короткая форма без протокола
+    match2 = re.search(r'\bt\.me/[^\s,"]+', str(text))
+    return match2.group(0) if match2 else ''
 
 def calculate_lead_score(row):
     score = 0
 
-    text_blob = " ".join([
-        str(row.get('phones', '')),
-        str(row.get('site', '')),
-        str(row.get('socials', '')),
-    ]).lower()
+    if row.get('has_telegram'):
+        score += 20
 
-    if 't.me/' in text_blob or 'telegram.me/' in text_blob:
-        score += 15
-    if 'wa.me/' in text_blob or 'whatsapp' in text_blob:
-        score += 10
-    
     beauty_keywords = [
         'парикмахер', 'барбершоп', 'маникюр', 'ногти', 'брови', 'ресницы', 
         'косметолог', 'массаж', 'spa', 'спа', 'эпиляция', 'депиляция'
@@ -89,16 +91,18 @@ def process_raw_file(input_path, city):
         if col not in df.columns:
             df[col] = np.nan
 
+    combined = (
+        df.get('phones', pd.Series(dtype=str)).fillna('').astype(str) + ' ' +
+        df.get('site', pd.Series(dtype=str)).fillna('').astype(str) + ' ' +
+        df.get('socials', pd.Series(dtype=str)).fillna('').astype(str)
+    )
+
+    df['tg_link'] = combined.apply(extract_tg_link)
+    df['has_telegram'] = df['tg_link'] != ''
+
     df['city'] = city
     df['has_phone'] = df['phones'].apply(lambda x: pd.notna(x) and x != '')
     df['source'] = '2gis'
-
-    # Add has_telegram and has_whatsapp flags
-    text_blob = df['phones'].astype(str) + ' ' + df['site'].astype(str) + ' ' + df['socials'].astype(str)
-    text_blob = text_blob.str.lower()
-
-    df['has_telegram'] = text_blob.str.contains('t.me/|telegram.me/', na=False)
-    df['has_whatsapp'] = text_blob.str.contains('wa.me/|whatsapp', na=False)
     
     df['lead_score'] = df.apply(calculate_lead_score, axis=1)
     df['segment'] = df['lead_score'].apply(get_segment)
