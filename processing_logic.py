@@ -4,6 +4,17 @@ import numpy as np
 
 def calculate_lead_score(row):
     score = 0
+
+    text_blob = " ".join([
+        str(row.get('phones', '')),
+        str(row.get('site', '')),
+        str(row.get('socials', '')),
+    ]).lower()
+
+    if 't.me/' in text_blob or 'telegram.me/' in text_blob:
+        score += 15
+    if 'wa.me/' in text_blob or 'whatsapp' in text_blob:
+        score += 10
     
     beauty_keywords = [
         'парикмахер', 'барбершоп', 'маникюр', 'ногти', 'брови', 'ресницы', 
