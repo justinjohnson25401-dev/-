@@ -63,8 +63,11 @@ def process_raw_file(input_path, city):
         'reviewCount': 'reviews_count',
     }
     df.rename(columns=column_mapping, inplace=True)
+
+    df['rating'] = pd.to_numeric(df.get('rating', 0), errors='coerce').fillna(0.0)
+    df['reviews_count'] = pd.to_numeric(df.get('reviews_count', 0), errors='coerce').fillna(0).astype(int)
     
-    for col in ['name', 'address', 'phones', 'site', 'socials', 'schedule', 'email', 'rating', 'reviews_count']:
+    for col in ['name', 'address', 'phones', 'site', 'socials', 'schedule', 'email']:
         if col not in df.columns:
             df[col] = np.nan
 
