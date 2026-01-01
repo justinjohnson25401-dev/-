@@ -26,7 +26,7 @@ def main():
         db_df = pd.DataFrame(columns=[
             'name', 'city', 'address', 'phones', 'site', 'socials', 'schedule', 
             'email', 'rating', 'reviews_count', 'segment', 'lead_score', 'has_phone', 
-            'source', 'first_seen_at', 'company_key'
+            'has_telegram', 'has_whatsapp', 'source', 'first_seen_at', 'company_key'
         ])
         initial_db_count = 0
 
@@ -41,8 +41,8 @@ def main():
 
     final_df = final_df[[
         'name', 'city', 'address', 'phones', 'site', 'socials', 'schedule', 
-        'email', 'rating', 'reviews_count', 'segment', 'lead_score', 'has_phone', 
-        'source', 'first_seen_at', 'company_key'
+        'email', 'rating', 'reviews_count', 'segment', 'lead_score', 'has_phone',
+        'has_telegram', 'has_whatsapp', 'source', 'first_seen_at', 'company_key'
     ]]
 
     final_df.to_csv(args.db, index=False)
@@ -55,4 +55,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

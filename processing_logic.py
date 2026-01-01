@@ -92,6 +92,13 @@ def process_raw_file(input_path, city):
     df['city'] = city
     df['has_phone'] = df['phones'].apply(lambda x: pd.notna(x) and x != '')
     df['source'] = '2gis'
+
+    # Add has_telegram and has_whatsapp flags
+    text_blob = df['phones'].astype(str) + ' ' + df['site'].astype(str) + ' ' + df['socials'].astype(str)
+    text_blob = text_blob.str.lower()
+
+    df['has_telegram'] = text_blob.str.contains('t.me/|telegram.me/', na=False)
+    df['has_whatsapp'] = text_blob.str.contains('wa.me/|whatsapp', na=False)
     
     df['lead_score'] = df.apply(calculate_lead_score, axis=1)
     df['segment'] = df['lead_score'].apply(get_segment)
